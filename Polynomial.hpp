@@ -58,31 +58,36 @@ public:
 
     Polynomial operator* (const Polynomial & other) const {
         Polynomial result;
+        Polynomial temp;
         if(this->poly.size() != 0 && other.poly.size() != 0) {
             for (auto x: this->poly) {
                 for (auto i: other.poly) {
-                    T coe = x.first * i.first;
-                    int exp = x.second + i.second;
-                    result.poly.push_back(make_pair(coe, exp));
+                    temp.poly.push_back(make_pair(x.first * i.first, x.second + i.second));
                 }
             }
 
-            sort(result.poly.begin(), result.poly.end(), exponent_comparator());
+            sort(temp.poly.begin(), temp.poly.end(), exponent_comparator());
 
-            for (int n = 0; n < result.poly.size(); n++) {
-                for (int m = n+1; m < result.poly.size(); m++) {
-                    if (result.poly[n].second == result.poly[m].second) {
-                        result.poly[n].first += result.poly[m].first;
-                        result.poly.erase(result.poly.begin() + m);
-                    }
+            int expo = temp.maxDegree();
+            float coef = 0.0;
+            for (auto a: temp.poly) {
+                if (a.second == expo) {
+                    coef += a.first;
+                }
+                else {
+                    result.poly.push_back(make_pair(coef, expo));
+                    expo = a.second;
+                    coef = a.first;
                 }
             }
+            result.poly.push_back(make_pair(coef, expo));
         }
         else {
             result.poly.push_back(make_pair(0, 0));
         }
 
         return result;
+
     }
 
     Polynomial operator% (const Polynomial& other) const {
@@ -103,6 +108,7 @@ public:
             }
 
             sort(result.poly.begin(), result.poly.end(), exponent_comparator());
+
         }
         else {
             result.poly.push_back(make_pair(0, 0));
