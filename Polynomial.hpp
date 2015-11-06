@@ -2,6 +2,10 @@
  * Polynomial.hpp
  *
  *      Author: "Hans Dulimarta <dulimarh@cis.gvsu.edu>"
+ *
+ *      Completed by:Harrison, Kevin
+ *                   Vanderhoef, Trevor
+ *                   Vansteel, Alexander
  */
 
 #ifndef POLYNOM_H_
@@ -52,50 +56,57 @@ public:
         return *this;
     }
 
-    /* TODO: complete this function to multiply "this" polynomial (of M
-     * terms) with the "other" polynomial (of N terms). Use the first 
-     * technique described in question 5.13: (a) store the MN terms of the
-     * product (b) sort them (c) combine like terms
-     */
     Polynomial operator* (const Polynomial & other) const {
         Polynomial result;
-        exponent_comparator compare;
-        for(int i = 0; i < this->poly.size(); ++i){
-            for(int x = 0; x < other.poly.size(); ++x){
-                T first = this->poly[i].first * other.poly[x].first;
-                int second = this->poly[i].second + other.poly[x].second;
-                result.poly.push_back(make_pair(first , second));
+        if(this->poly.size() != 0 && other.poly.size() != 0) {
+            for (auto x: this->poly) {
+                for (auto i: other.poly) {
+                    T coe = x.first * i.first;
+                    int exp = x.second + i.second;
+                    result.poly.push_back(make_pair(coe, exp));
+                }
             }
-        }
 
-        for(int j = 0; j < result.poly.size(); ++j) {
-            for (int k = j + 1; k < result.poly.size(); ++k) {
-                if(result.poly[j].second < result.poly[k].second) {
-                    result.poly[j].swap(result.poly[k]);
+            sort(result.poly.begin(), result.poly.end(), exponent_comparator());
+
+            for (int n = 0; n < result.poly.size(); n++) {
+                for (int m = n+1; m < result.poly.size(); m++) {
+                    if (result.poly[n].second == result.poly[m].second) {
+                        result.poly[n].first += result.poly[m].first;
+                        result.poly.erase(result.poly.begin() + m);
+                    }
                 }
             }
         }
-
-        for(int n = 0; n < result.poly.size(); ++n) {
-            for(int m = n+1; m < result.poly.size(); ++m) {
-                if(result.poly[n].second == result.poly[m].second){
-                    result.poly[n].first += result.poly[m].first;
-                    result.poly.erase(result.poly.begin() + m);
-                }
-            }
+        else {
+            result.poly.push_back(make_pair(0, 0));
         }
 
         return result;
     }
 
-    /* TODO: complete this function to multiply "this" polynomial (of M
-     * terms) with the "other" polynomial (of N terms). Use the alternate 
-     * technique described in question 5.13. Hint, use a map (or
-     * unordered_map) to merge like terms as they are computed.
-     */
     Polynomial operator% (const Polynomial& other) const {
         Polynomial result;
-        /* TODO: write your algorithm here */
+        map<int, T> polys;
+
+        if(this->poly.size() != 0 && other.poly.size() != 0) {
+            for (auto x: this->poly) {
+                for (auto i: other.poly) {
+                    T coe = x.first * i.first;
+                    int exp = x.second + i.second;
+                    polys[exp] += coe;
+                }
+            }
+
+            for (auto x: polys) {
+                result.poly.push_back(make_pair(x.second, x.first));
+            }
+
+            sort(result.poly.begin(), result.poly.end(), exponent_comparator());
+        }
+        else {
+            result.poly.push_back(make_pair(0, 0));
+        }
 
         return result;
     }
@@ -119,17 +130,10 @@ public:
         return 0;
     }
 
-    /* TODO evaluate the polynom at the given value */
     T operator() (T arg) const {
-        int x = arg;
-        double result;
-        for(int i = 0; i < poly.size(); ++i){
-            if(poly[i].second != 0){
-                result += poly[i].first * pow(x, poly[i].second);
-            }
-            else{
-                result += poly[i].first;
-            }
+        double result = 0.0;
+        for(auto x: poly){
+            result += pow(arg, x.second) * x.first;
         }
         return result;
     }
